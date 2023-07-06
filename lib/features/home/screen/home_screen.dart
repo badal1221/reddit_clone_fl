@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reddit_clone_f/features/home/delegates/search_community_delegate.dart';
 import 'package:reddit_clone_f/features/home/drawers/community_list_drawer.dart';
 import '../../auth/controller/auth_controller.dart';
 
@@ -9,6 +10,7 @@ class HomeScreen extends ConsumerWidget {
   void displayDrawer(BuildContext context){
     Scaffold.of(context).openDrawer();
   }
+
 
   @override
   Widget build(BuildContext context,WidgetRef ref) {
@@ -26,7 +28,9 @@ class HomeScreen extends ConsumerWidget {
             }
           ),
         actions: [
-          IconButton(onPressed: (){}, 
+          IconButton(onPressed: (){
+            showSearch(context: context, delegate: SearchCommunityDelegates(ref));
+          },
               icon: const Icon(Icons.search),),
           IconButton(
             icon: CircleAvatar(
