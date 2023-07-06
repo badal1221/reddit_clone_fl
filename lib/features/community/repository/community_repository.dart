@@ -27,20 +27,18 @@ class CommunityRepository{
     }
   }
 
-  Stream<List<Community>> getUserCommmunity(String uid){
-    return _communities.where('members',arrayContains: uid).snapshots().map((event){
-      List<Community> community=[];
-      for(var doc in event.docs){
-        community.add(Community.fromMap(doc.data() as Map<String,dynamic>));
+  Stream<List<Community>> getUserCommunities(String uid) {
+    return _communities.where('members', arrayContains: uid).snapshots().map((event) {
+      List<Community> communities = [];
+      for (var doc in event.docs) {
+        communities.add(Community.fromMap(doc.data() as Map<String, dynamic>));
       }
-      return community;
+      return communities;
     });
   }
   Stream<Community> getCommunityByName(String name){
     return _communities.doc(name).snapshots().map((event)=>Community.fromMap(event.data() as Map<String,dynamic>));
   }
-
-  CollectionReference get _communities=>_firestore.collection(FirebaseConstants.communitiesCollection);
 
   FutureVoid editCommunity(Community community)async{
     try{
@@ -66,4 +64,38 @@ class CommunityRepository{
       return communities;
     });
   }
+
+  FutureVoid joinCommunity(String communityName,String userId) async{
+    try{
+      return right(_communities.doc(communityName).update({'members':FieldValue.arrayUnion([userId]),
+      }));
+    }on FirebaseException catch(e) {
+      throw e.message!;
+    }catch(e){
+      return left(Failure(e.toString()));
+    }
+  }
+  FutureVoid leaveCommunity(String communityName,String userId) async{
+    try{
+      return right(_communities.doc(communityName).update({'members':FieldValue.arrayRemove([userId]),
+      }));
+    }on FirebaseException catch(e) {
+      throw e.message!;
+    }catch(e){
+      return left(Failure(e.toString()));
+    }
+  }
+
+  FutureVoid addMods(String communityName,List<String> uids)async{
+    try{
+      return right(_communities.doc(communityName).update({
+        'mods':uids,
+      }));
+    }on FirebaseException catch(e) {
+      throw e.message!;
+    }catch(e){
+      return left(Failure(e.toString()));
+    }
+  }
+  CollectionReference get _communities=>_firestore.collection(FirebaseConstants.communitiesCollection);
 }

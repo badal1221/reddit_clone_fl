@@ -1,8 +1,9 @@
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:reddit_clone_f/core/constants/constants.dart';
+import 'package:reddit_clone_f/core/failure.dart';
 import 'package:reddit_clone_f/features/auth/controller/auth_controller.dart';
 import 'package:reddit_clone_f/features/community/repository/community_repository.dart';
 import 'package:reddit_clone_f/models/community_model.dart';
@@ -55,7 +56,7 @@ class CommunityController extends StateNotifier<bool>{
   }
   Stream<List<Community>> getUserCommunity(){
     final uid=_ref.read(userProvider)!.uid;
-    return _communityRepository.getUserCommmunity(uid);
+    return _communityRepository.getUserCommunities(uid);
   }
   Stream<Community> getCommunityByName(String name){
     return _communityRepository.getCommunityByName(name);
@@ -90,5 +91,30 @@ class CommunityController extends StateNotifier<bool>{
 
   Stream<List<Community>> searchCommunity(String query){
     return _communityRepository.searchCommunity(query);
+  }
+
+  void joinCommunity(Community community,BuildContext context)async{
+    final user=_ref.read(userProvider);
+    Either<Failure,void> res;
+    if(community.members.contains(user!.uid)){
+      res=await _communityRepository.leaveCommunity(community.name,user.uid);
+    }else{
+      res=await _communityRepository.joinCommunity(community.name,user.uid);
+    }
+    res.fold((l) =>showSnackBar(context,l.message),
+            (r) {
+             if(community.members.contains(user.uid)){
+               showSnackBar(context,'Community left successfully');
+             }
+             else{
+               showSnackBar(context,'Community joined successfully');
+             }
+            });//work at firebase is done but our community variable is same old same old
+  }
+
+  void addMode(String communityName,List<String> uids,BuildContext context)async{
+    final res=await _communityRepository.addMods(communityName, uids);
+    res.fold((l) => showSnackBar(context,l.message),
+            (r) => Routemaster.of(context).pop());
   }
 }
