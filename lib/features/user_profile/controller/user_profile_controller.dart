@@ -4,8 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reddit_clone_f/features/auth/controller/auth_controller.dart';
 import 'package:routemaster/routemaster.dart';
+import '../../../core/enums/enums.dart';
 import '../../../core/providers/storage_repository_provider.dart';
 import '../../../core/utils.dart';
+import '../../../models/post_model.dart';
 import '../../../models/user_model.dart';
 import '../repository/user_profile_repository.dart';
 
@@ -20,6 +22,9 @@ final userProfileControllerProvider = StateNotifierProvider<UserProfileControlle
   );
 });
 
+final getUserPostsProvider=StreamProvider.family((ref,String uid){
+  return ref.read(userProfileControllerProvider.notifier).getUserPosts(uid);
+});
 
 
 class UserProfileController extends StateNotifier<bool>{
@@ -63,5 +68,18 @@ class UserProfileController extends StateNotifier<bool>{
                Routemaster.of(context).pop();
            },
     );
+  }
+
+  Stream<List<Post>> getUserPosts(String uid){
+    return _userProfileRepository.getUserPosts(uid);
+  }
+
+  void updateUserKarma(UserKarma karma)async{
+    UserModel user=_ref.read(userProvider)!;
+    user=user.copyWith(karma:user.karma+karma.karma);//change our users karma
+
+    final res=await _userProfileRepository.updateKarma(user);//updated firebase
+    res.fold((l) => null,
+            (r) => _ref.read(userProvider.notifier).update((state) => user));//update our user to latest version
   }
 }

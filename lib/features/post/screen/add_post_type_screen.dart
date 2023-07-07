@@ -54,7 +54,7 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
            title: titleController.text.trim(),
            selectedCommunity: selectedCommunity??communities[0],
            description: descriptionController.text.trim());
-     }else if(widget.type=='text'&&linkController.text.isNotEmpty && titleController.text.isNotEmpty){
+     }else if(widget.type=='link'&&linkController.text.isNotEmpty && titleController.text.isNotEmpty){
        ref.read(postControllerProvider.notifier).shareLinkPost(context: context,
            title: titleController.text.trim(),
            selectedCommunity: selectedCommunity??communities[0],

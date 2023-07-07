@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reddit_clone_f/features/auth/controller/auth_controller.dart';
+import 'package:reddit_clone_f/features/user_profile/controller/user_profile_controller.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:routemaster/routemaster.dart';
 import '../../../core/common/error_text.dart';
 import '../../../core/common/loader.dart';
+import '../../../core/common/post_card.dart';
 
 class UserProfileScreen extends ConsumerWidget {
   final String uid;
@@ -74,7 +76,17 @@ class UserProfileScreen extends ConsumerWidget {
                 ),),
               ),
             ];
-          }, body:const Text('Posts of the Community will be displayed')),
+          },
+          body:ref.watch(getUserPostsProvider(uid)).when(
+              data: (data){
+                 return ListView.builder(itemCount:data.length,
+                     itemBuilder: (BuildContext contex,int index){
+                       final post=data[index];
+                       return PostCard(post:post);
+                 });
+             },
+              error: (error,stackTrace)=>ErrorText(error: error.toString()),
+             loading: ()=>const Loader())),
           error: (error,stackTrace)=>ErrorText(error: error.toString()),
           loading: ()=>const Loader()),
     );
