@@ -12,6 +12,7 @@ import 'package:reddit_clone_f/features/user_profile/screens/user_profile_screen
 import 'package:routemaster/routemaster.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/community/screens/add_mod_screen.dart';
+import 'features/post/screen/add_post_type_screen.dart';
 
 final loggedOutRoute=RouteMap(routes:{
   '/':(_)=>const MaterialPage(child: LoginScreen()),
@@ -42,6 +43,10 @@ final loggedInRoute=RouteMap(routes:{
   ),
   '/edit-profile/:uid':(routeData)=>MaterialPage(
     child: EditProfileScreen(uid: routeData.pathParameters['uid']!,
+    ),
+  ),
+  '/add-post/:type':(routeData)=>MaterialPage(
+    child: AddPostTypeScreen(type: routeData.pathParameters['type']!,
     ),
   ),
 });
