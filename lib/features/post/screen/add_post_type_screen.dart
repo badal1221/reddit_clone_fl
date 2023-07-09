@@ -121,15 +121,24 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
                 ),
               ),
             if(isTypeText)
-              TextField(
-                controller: descriptionController,
-                decoration:const InputDecoration(
-                  filled: true,
-                  hintText: 'Enter Description here',
-                  border: InputBorder.none,
-                  contentPadding:EdgeInsets.all(18),
+              Container(
+                decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.grey,
+                      width: 1,
+                    ),
+                    borderRadius: BorderRadius.circular(12)
                 ),
-                maxLines: 5,
+                child: TextField(
+                  controller: descriptionController,
+                  decoration:const InputDecoration(
+                    filled: true,
+                    hintText: 'Enter Description here',
+                    border: InputBorder.none,
+                    contentPadding:EdgeInsets.all(18),
+                  ),
+                  maxLines: 5,
+                ),
               ),
             if(isTypeLink)
               TextField(
@@ -151,16 +160,29 @@ class _AddPostTypeScreenState extends ConsumerState<AddPostTypeScreen> {
                 if(data.isEmpty){
                   return const SizedBox();
                 }
-                return DropdownButton(
-                    value: selectedCommunity??data[0],
-                    items:data.map((e) =>DropdownMenuItem(
-                    value:e,
-                    child:Text(e.name))).toList(),
-                    onChanged:(val){
-                      setState(() {
-                          selectedCommunity=val;
-                      });
-                    });
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.grey,
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(10)
+                  ),
+                  child: DropdownButton(
+                      value: selectedCommunity??data[0],
+                      items:data.map((e) =>DropdownMenuItem(
+                      value:e,
+                      child:Text(e.name))).toList(),
+                      onChanged:(val){
+                        setState(() {
+                            selectedCommunity=val;
+                        });
+                      },
+                    underline: Container(),
+                    //remove underline
+                  ),
+                );
               },
                 error: (error,stackTrace)=>ErrorText(error: error.toString()),
                 loading:()=>const Loader(),)

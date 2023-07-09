@@ -17,6 +17,7 @@ class PostRepository{
 
   CollectionReference get _posts=>_firestore.collection(FirebaseConstants.postsCollection);
   CollectionReference get _comments=>_firestore.collection(FirebaseConstants.commentsCollection);
+  CollectionReference get _users=>_firestore.collection(FirebaseConstants.usersCollection);
   FutureVoid addPost(Post post) async{
     try{
       return right(_posts.doc(post.id).set(post.toMap()));
@@ -109,6 +110,38 @@ class PostRepository{
             e.data() as Map<String,dynamic>,
           ),
         ).toList()
+    );
+  }
+
+  FutureVoid awardPost(Post post,String award,String senderId)async{
+    try{
+      _posts.doc(post.id).update({
+        'awards':FieldValue.arrayUnion([award]),
+      });//give award to post
+      _users.doc(senderId).update({
+        'awards':FieldValue.arrayRemove([award]),
+      });//remove award from doner
+      return right(_users.doc(post.uid).update({
+        'awards':FieldValue.arrayUnion([award]),
+      }));//gift award to the one who posted the post
+    }on FirebaseException catch(e){
+      throw e.message!;
+    }catch(e){
+      return left(Failure(e.toString()));
+    }
+  }
+
+  Stream<List<Post>> fetchGuestPosts(){
+    return _posts
+        .orderBy('createdAt',descending: true).limit(10)
+        .snapshots()
+        .map(
+          (event) =>event.docs
+          .map(
+            (e) => Post.fromMap(
+          e.data() as Map<String,dynamic>,
+        ),
+      ).toList(),
     );
   }
 }

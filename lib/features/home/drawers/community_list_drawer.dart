@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:reddit_clone_f/core/common/error_text.dart';
 import 'package:reddit_clone_f/core/common/loader.dart';
 import 'package:reddit_clone_f/features/community/controller/community_controller.dart';
 import 'package:reddit_clone_f/models/community_model.dart';
 import 'package:routemaster/routemaster.dart';
+
+import '../../../core/common/sign_in_button.dart';
+import '../../auth/controller/auth_controller.dart';
 
 class CommunityListDrawer extends ConsumerWidget {
   const CommunityListDrawer({Key? key}) : super(key: key);
@@ -18,35 +22,39 @@ class CommunityListDrawer extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context,WidgetRef ref) {
+    final user=ref.watch(userProvider)!;
+    final isGuest=!(user.isAuthenticated);//if user is authenticated then not a guest
     return Drawer(
       child: SafeArea(
         child: Column(
           children: [
-            ListTile(
+            isGuest?const SignInButton(isFromLogin:false)
+                :ListTile(
               title:const  Text('Create a community'),
               leading:const Icon(Icons.add),
               onTap: ()=>navigateToCreateCommunity(context),
             ),
-            ref.watch(userCommunitiesProvider).when(
-                data: (communities)=>Expanded(
-                  child: ListView.builder(
-              itemCount: communities.length,
-              itemBuilder: (BuildContext context,int index){
-                  final community=communities[index];
-                  return ListTile(
-                    leading:CircleAvatar(
-                      backgroundImage: NetworkImage(community.avatar),
+            if(!isGuest)
+              ref.watch(userCommunitiesProvider).when(
+                  data: (communities)=>Expanded(
+                    child: ListView.builder(
+                      itemCount: communities.length,
+                      itemBuilder: (BuildContext context,int index){
+                        final community=communities[index];
+                        return ListTile(
+                          leading:CircleAvatar(
+                            backgroundImage: NetworkImage(community.avatar),
+                          ),
+                          title: Text('r/${community.name}'),
+                          onTap: (){
+                            navigateToCommunity(context,community);
+                          },
+                        );
+                      },
                     ),
-                    title: Text('r/${community.name}'),
-                    onTap: (){
-                      navigateToCommunity(context,community);
-                    },
-                  );
-              },
-            ),
-                ),
-                error: (error,stackTrace)=>ErrorText(error: error.toString(),),
-                loading:()=> const Loader()),
+                  ),
+                  error: (error,stackTrace)=>ErrorText(error: error.toString(),),
+                  loading:()=> const Loader()),
           ],
         ),
       ),

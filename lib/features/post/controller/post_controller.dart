@@ -25,6 +25,10 @@ final userPostProvider=StreamProvider.family((ref,List<Community> communities){
   final postController=ref.watch(postControllerProvider.notifier);
   return postController.fetchUserPosts(communities);
 });
+final guestPostProvider=StreamProvider((ref){
+  final postController=ref.watch(postControllerProvider.notifier);
+  return postController.fetchGuestPosts();
+});
 
 final getPostById=StreamProvider.family((ref,String postId){
   final postController=ref.watch(postControllerProvider.notifier);
@@ -197,5 +201,24 @@ class PostController extends StateNotifier<bool>{
   }
   Stream<List<Comment>> fetchPostComments(String postId){
     return _postRepository.getCommentsOfPosts(postId);
+  }
+  void awardPost({required Post post,
+    required String award,
+    required BuildContext context})async{
+    final user=_ref.read(userProvider)!;
+    final res=await _postRepository.awardPost(post, award,user.uid);
+    res.fold((l) => showSnackBar(context,l.message),
+            (r) {
+               _ref.read(userProfileControllerProvider.notifier).updateUserKarma(UserKarma.awardPost);
+               _ref.read(userProvider.notifier).update((state){
+                 state?.awards.remove(award);
+                 return state;
+               });
+               Routemaster.of(context).pop();
+            });
+  }
+
+  Stream<List<Post>> fetchGuestPosts(){
+      return _postRepository.fetchGuestPosts();
   }
 }

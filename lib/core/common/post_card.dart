@@ -25,6 +25,12 @@ class PostCard extends ConsumerWidget{
   void downvotePost(WidgetRef ref){
     ref.read(postControllerProvider.notifier).downvote(post);
   }
+  void awardPost(WidgetRef ref,String award,BuildContext context){
+    ref.read(postControllerProvider.notifier).awardPost(
+        post: post, 
+        award: award, 
+        context: context);
+  }
   void navigateToUserProfile(BuildContext context){
     Routemaster.of(context).push('/u/${post.uid}');
   }
@@ -42,6 +48,7 @@ class PostCard extends ConsumerWidget{
     final isTypeLink=post.type=='link';
     final currentTheme=ref.watch(themeNotifierProvider);
     final user=ref.watch(userProvider)!;
+    final isGuest=!(user.isAuthenticated);
     return Container(
       decoration: BoxDecoration(
         color:currentTheme.drawerTheme.backgroundColor,
@@ -94,6 +101,19 @@ class PostCard extends ConsumerWidget{
                               color: Pallete.redColor,),),
                       ],
                     ),
+                    if(post.awards.isNotEmpty)...[
+                      const SizedBox(height: 5,),
+                      SizedBox(height: 25,
+                        child: ListView.builder(
+                            scrollDirection:Axis.horizontal,
+                            itemCount: post.awards.length,
+                            itemBuilder:(BuildContext context,int index){
+                              final award=post.awards[index];
+                              return Image.asset(Constants.awards[award]!,height: 23,);
+                            }
+                        ),
+                      ),
+                    ],
                     Padding(
                       padding: const EdgeInsets.only(right:10),
                       child: Text(post.title,style: TextStyle(
@@ -130,7 +150,7 @@ class PostCard extends ConsumerWidget{
                       children: [
                         Row(
                           children: [
-                            IconButton(onPressed:()=>upvotePost(ref),
+                            IconButton(onPressed:isGuest?(){}:()=>upvotePost(ref),
                                 icon:Icon(Constants.up,
                                   size: 30,
                                 color: post.upvotes.contains(user.uid)?Pallete.redColor:null,),),
@@ -138,7 +158,7 @@ class PostCard extends ConsumerWidget{
                             style: TextStyle(
                               fontSize: 17,
                             ),),
-                            IconButton(onPressed:()=>downvotePost(ref),
+                            IconButton(onPressed:isGuest?(){}:()=>downvotePost(ref),
                               icon:Icon(Constants.down,
                                 size: 30,
                                 color: post.downvotes.contains(user.uid)?Pallete.blueColor:null,),),
@@ -162,29 +182,34 @@ class PostCard extends ConsumerWidget{
                             error: (error,stackTrace)=>ErrorText(error: error.toString()),
                             loading:()=>const Loader()
                         ),
-                        IconButton(onPressed:(){
-                          showDialog(context: context,
+                        if(post.uid!=user.uid)
+                          IconButton(onPressed:isGuest?(){}:(){
+                            showDialog(context: context,
                               builder:(context)=>Dialog(
                                 child:Padding(
                                   padding: const EdgeInsets.all(20),
                                   child: GridView.builder(
-                                      shrinkWrap: true,
-                                      gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(
-                                          crossAxisCount:4),
-                                      itemCount: user.awards.length,
-                                      itemBuilder: (BuildContext context,int index){
-                                        final award=user.awards[index];
-                                        return Padding(
+                                    shrinkWrap: true,
+                                    gridDelegate:const SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount:4),
+                                    itemCount: user.awards.length,
+                                    itemBuilder: (BuildContext context,int index){
+                                      final award=user.awards[index];
+                                      return GestureDetector(
+                                        onTap:()=>awardPost(ref, award, context),
+                                        child: Padding(
                                           padding: const EdgeInsets.all(8.0),
                                           child: Image.asset(Constants.awards[award]!),
-                                        );
-                                      },
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ),
                               ),
-                          );
-                        },
-                            icon:const Icon(Icons.card_giftcard_outlined))
+                            );
+                          },
+                              icon:const Icon(Icons.card_giftcard_outlined),
+                          ),
                       ],
                     )
                   ],
